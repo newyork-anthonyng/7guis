@@ -5,6 +5,8 @@ module.exports = {
       colors: {},
     },
   },
-  variants: {},
+  variants: {
+    opacity: ["responsive", "hover", "focus", "disabled"],
+  },
   plugins: [],
 };
