@@ -4,6 +4,7 @@ import "./styles.css";
 import Counter from "./Counter";
 import TemperatureConverter from "./TemperatureConverter";
 import FlightTracker from "./FlightTracker";
+import Timer from "./Timer";
 import { BrowserRouter as Router, Link, Route, Switch } from "react-router-dom";
 
 function App() {
@@ -21,6 +22,9 @@ function App() {
             <li>
               <Link to="/flight-tracker">Flight Tracker</Link>
             </li>
+            <li>
+              <Link to="/timer">Timer</Link>
+            </li>
           </ul>
         </nav>
 
@@ -33,6 +37,9 @@ function App() {
           </Route>
           <Route path="/flight-tracker">
             <FlightTracker />
+          </Route>
+          <Route path="/timer">
+            <Timer />
           </Route>
         </Switch>
       </div>
