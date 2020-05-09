@@ -3,8 +3,8 @@ import { uuid } from "uuidv4";
 function createPerson({ name, surname }) {
   return {
     id: uuid(),
-    name: name,
-    surname: surname,
+    name: name.trim(),
+    surname: surname.trim(),
     selected: false,
   };
 }

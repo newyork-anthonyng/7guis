@@ -11,6 +11,7 @@ const machine = Machine(
       name: "",
       surname: "",
       people: [],
+      surnameFilter: "",
     },
     on: {
       SELECT_PERSON: {
@@ -80,6 +81,10 @@ const machine = Machine(
             actions: "cacheSurname",
             target: ["ready.CREATE.noError", "ready.DELETE.noError"],
           },
+          INPUT_SURNAME_FILTER: {
+            actions: "cacheSurnameFilter",
+            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
+          },
         },
       },
       creating: {
@@ -129,6 +134,7 @@ const machine = Machine(
       }),
       cacheName: assign({ name: (_, event) => event.value }),
       cacheSurname: assign({ surname: (_, event) => event.value }),
+      cacheSurnameFilter: assign({ surnameFilter: (_, event) => event.value }),
       deselectOtherPeople: (context, event) => {
         context.people.forEach((person) => {
           if (event.person.id !== person.id) person.ref.send("UNSELECT");
