@@ -13,9 +13,19 @@ const machine = Machine(
       people: [],
     },
     on: {
-      SELECT_USER: {
-        actions: ["deselectOtherUsers", "selectUser", "persist"],
+      SELECT_PERSON: {
+        actions: ["deselectOtherPeople", "selectPerson", "persist"],
+        target: "ready.DELETE.noError",
       },
+      DELETE: [
+        {
+          cond: "isPersonSelected",
+          target: "deleting",
+        },
+        {
+          target: "ready.DELETE.error",
+        },
+      ],
     },
     states: {
       initializing: {
@@ -25,21 +35,74 @@ const machine = Machine(
         },
       },
       ready: {
-        on: {
-          CREATE: {
-            actions: ["createPerson", "persist"],
+        type: "parallel",
+        states: {
+          DELETE: {
+            initial: "noError",
+            states: {
+              noError: {},
+              error: {
+                initial: "empty",
+                states: {
+                  empty: {},
+                },
+              },
+            },
           },
+          CREATE: {
+            initial: "noError",
+            states: {
+              noError: {},
+              error: {
+                initial: "empty",
+                states: {
+                  empty: {},
+                },
+              },
+            },
+          },
+        },
+        on: {
+          CREATE: [
+            {
+              cond: "areNamesEmpty",
+              target: "ready.CREATE.error.empty",
+            },
+            {
+              target: "creating",
+            },
+          ],
           INPUT_NAME: {
             actions: "cacheName",
+            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
           },
           INPUT_SURNAME: {
             actions: "cacheSurname",
+            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
           },
+        },
+      },
+      creating: {
+        entry: ["createPerson", "persist"],
+        on: {
+          "": "ready",
+        },
+      },
+      deleting: {
+        entry: ["deletePerson", "persist"],
+        on: {
+          "": "ready",
         },
       },
     },
   },
   {
+    guards: {
+      isPersonSelected: (context) => {
+        return context.people.some((person) => person.selected);
+      },
+      areNamesEmpty: (context) => !(context.name && context.surname),
+    },
     actions: {
       initializePeople: assign({
         people: (context) => {
@@ -53,9 +116,6 @@ const machine = Machine(
         name: "",
         surname: "",
         people: (context) => {
-          // TODO: might want to handle error states
-          if (!(context.name && context.surname)) return context.people;
-
           const newPerson = createPerson(context);
 
           return [
@@ -69,18 +129,29 @@ const machine = Machine(
       }),
       cacheName: assign({ name: (_, event) => event.value }),
       cacheSurname: assign({ surname: (_, event) => event.value }),
-      deselectOtherUsers: (context, event) => {
+      deselectOtherPeople: (context, event) => {
         context.people.forEach((person) => {
           if (event.person.id !== person.id) person.ref.send("UNSELECT");
         });
       },
-      selectUser: assign({
+      selectPerson: assign({
         people: (context, event) => {
           return context.people.map((person) => {
             return person.id === event.person.id
               ? { ...person, selected: !person.selected, ref: person.ref }
               : { ...person, selected: false, ref: person.ref };
           });
+        },
+      }),
+      deletePerson: assign({
+        people: (context) => {
+          const deletedPersonIndex = context.people.findIndex(
+            (person) => person.selected
+          );
+
+          const copiedPeople = context.people.slice();
+          copiedPeople.splice(deletedPersonIndex, 1);
+          return copiedPeople;
         },
       }),
 

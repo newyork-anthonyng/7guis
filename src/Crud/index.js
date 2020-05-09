@@ -25,6 +25,8 @@ function Crud() {
 
   const handleCreateClick = () => send({ type: "CREATE" });
 
+  const handleDeleteClick = () => send({ type: "DELETE" });
+
   return (
     <div>
       <label className="block">
@@ -52,6 +54,19 @@ function Crud() {
       >
         Create
       </button>
+      <button
+        className="border-solid border-2 border-gray-100 rounded px-4 py-2 bg-red-600 text-white"
+        onClick={handleDeleteClick}
+      >
+        Delete
+      </button>
+
+      <div className="text-red-800">
+        {state.matches("ready.CREATE.error.empty") &&
+          "Name and surname cannot be blank"}
+        {state.matches("ready.DELETE.error.empty") && "Select a user to delete"}
+      </div>
+
       <ul>
         {people.map((person) => (
           <li key={person.id}>

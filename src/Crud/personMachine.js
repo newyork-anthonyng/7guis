@@ -2,20 +2,31 @@ import { Machine, sendParent } from "xstate";
 
 const personMachine = Machine({
   id: "person",
-  initial: "unselected",
+  initial: "initializing",
   context: {
     id: undefined,
     name: "",
     surname: "",
   },
   states: {
+    initializing: {
+      on: {
+        "": [
+          {
+            cond: (context) => context.selected,
+            target: "selected",
+          },
+          "unselected",
+        ],
+      },
+    },
     unselected: {
       on: {
         TOGGLE: {
           target: "selected",
           actions: [
             sendParent((context) => {
-              return { type: "SELECT_USER", person: context };
+              return { type: "SELECT_PERSON", person: context };
             }),
           ],
         },
@@ -27,17 +38,12 @@ const personMachine = Machine({
           target: "unselected",
           actions: [
             sendParent((context) => {
-              return { type: "SELECT_USER", person: context };
+              return { type: "SELECT_PERSON", person: context };
             }),
           ],
         },
         UNSELECT: {
           target: "unselected",
-          actions: [
-            (context) => {
-              console.log(`${context.name} is being unselected`);
-            },
-          ],
         },
       },
     },
