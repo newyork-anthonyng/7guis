@@ -1,4 +1,4 @@
-import { Machine, sendParent } from "xstate";
+import { Machine, assign, sendParent } from "xstate";
 
 const personMachine = Machine({
   id: "person",
@@ -7,6 +7,14 @@ const personMachine = Machine({
     id: undefined,
     name: "",
     surname: "",
+  },
+  on: {
+    UPDATE_NAME: {
+      actions: assign({
+        name: (_, event) => event.name,
+        surname: (_, event) => event.surname,
+      }),
+    },
   },
   states: {
     initializing: {

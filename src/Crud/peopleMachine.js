@@ -13,21 +13,6 @@ const machine = Machine(
       people: [],
       surnameFilter: "",
     },
-    on: {
-      SELECT_PERSON: {
-        actions: ["deselectOtherPeople", "selectPerson", "persist"],
-        target: "ready.DELETE.noError",
-      },
-      DELETE: [
-        {
-          cond: "isPersonSelected",
-          target: "deleting",
-        },
-        {
-          target: "ready.DELETE.error",
-        },
-      ],
-    },
     states: {
       initializing: {
         entry: "initializePeople",
@@ -62,6 +47,19 @@ const machine = Machine(
               },
             },
           },
+          UPDATE: {
+            initial: "noError",
+            states: {
+              noError: {},
+              error: {
+                initial: "empty",
+                states: {
+                  empty: {},
+                  noPersonSelected: {},
+                },
+              },
+            },
+          },
         },
         on: {
           CREATE: [
@@ -73,22 +71,64 @@ const machine = Machine(
               target: "creating",
             },
           ],
+          UPDATE: [
+            {
+              cond: "isNoPersonSelected",
+              target: "ready.UPDATE.error.noPersonSelected",
+            },
+            {
+              cond: "areNamesEmpty",
+              target: "ready.UPDATE.error.empty",
+            },
+            { target: "updating" },
+          ],
           INPUT_NAME: {
             actions: "cacheName",
-            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
+            target: [
+              "ready.CREATE.noError",
+              "ready.DELETE.noError",
+              "ready.UPDATE.noError",
+            ],
           },
           INPUT_SURNAME: {
             actions: "cacheSurname",
-            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
+            target: [
+              "ready.CREATE.noError",
+              "ready.DELETE.noError",
+              "ready.UPDATE.noError",
+            ],
           },
           INPUT_SURNAME_FILTER: {
             actions: "cacheSurnameFilter",
-            target: ["ready.CREATE.noError", "ready.DELETE.noError"],
+            target: [
+              "ready.CREATE.noError",
+              "ready.DELETE.noError",
+              "ready.UPDATE.noError",
+            ],
           },
+          SELECT_PERSON: {
+            actions: ["deselectOtherPeople", "selectPerson", "persist"],
+            target: ["ready.DELETE.noError", "ready.UPDATE.noError"],
+          },
+          DELETE: [
+            {
+              cond: "isNoPersonSelected",
+              target: "ready.DELETE.error",
+            },
+            {
+              target: "deleting",
+            },
+          ],
         },
       },
       creating: {
         entry: ["createPerson", "persist"],
+        on: {
+          "": "ready",
+        },
+      },
+      updating: {
+        entry: ["updatePerson", "persist"],
         on: {
           "": "ready",
         },
@@ -103,8 +143,8 @@ const machine = Machine(
   },
   {
     guards: {
-      isPersonSelected: (context) => {
-        return context.people.some((person) => person.selected);
+      isNoPersonSelected: (context) => {
+        return !context.people.some((person) => person.selected);
       },
       areNamesEmpty: (context) => !(context.name && context.surname),
     },
@@ -157,6 +197,21 @@ const machine = Machine(
 
           const copiedPeople = context.people.slice();
           copiedPeople.splice(deletedPersonIndex, 1);
+          return copiedPeople;
+        },
+      }),
+
+      updatePerson: assign({
+        people: (context) => {
+          const copiedPeople = context.people.slice();
+          const personToUpdate = copiedPeople.find((person) => person.selected);
+          personToUpdate.name = context.name;
+          personToUpdate.surname = context.surname;
+          personToUpdate.ref.send("UPDATE_NAME", {
+            name: personToUpdate.name,
+            surname: personToUpdate.surname,
+          });
+
           return copiedPeople;
         },
       }),

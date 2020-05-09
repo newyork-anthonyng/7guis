@@ -40,6 +40,8 @@ function Crud() {
 
   const handleCreateClick = () => send({ type: "CREATE" });
 
+  const handleUpdateClick = () => send({ type: "UPDATE" });
+
   const handleDeleteClick = () => send({ type: "DELETE" });
 
   return (
@@ -79,6 +81,13 @@ function Crud() {
         Create
       </button>
       <button
+        className="border-solid border-2 border-gray-100 rounded px-4 py-2 bg-green-700 text-white"
+        onClick={handleUpdateClick}
+      >
+        Update
+      </button>
+
+      <button
         className="border-solid border-2 border-gray-100 rounded px-4 py-2 bg-red-600 text-white"
         onClick={handleDeleteClick}
       >
@@ -89,6 +98,10 @@ function Crud() {
         {state.matches("ready.CREATE.error.empty") &&
           "Name and surname cannot be blank"}
         {state.matches("ready.DELETE.error.empty") && "Select a user to delete"}
+        {state.matches("ready.UPDATE.error.noPersonSelected") &&
+          "Select a user to update"}
+        {state.matches("ready.UPDATE.error.empty") &&
+          "Name and surname cannot be blank"}
       </div>
 
       <ul>
@@ -98,7 +111,6 @@ function Crud() {
           </li>
         ))}
       </ul>
-      <pre>{JSON.stringify(state, null, 2)}</pre>
     </div>
   );
 }
