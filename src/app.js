@@ -5,6 +5,7 @@ import Counter from "./Counter";
 import TemperatureConverter from "./TemperatureConverter";
 import FlightTracker from "./FlightTracker";
 import Timer from "./Timer";
+import Crud from "./Crud/index";
 import { BrowserRouter as Router, Link, Route, Switch } from "react-router-dom";
 
 function App() {
@@ -25,6 +26,9 @@ function App() {
             <li>
               <Link to="/timer">Timer</Link>
             </li>
+            <li>
+              <Link to="/crud">CRUD</Link>
+            </li>
           </ul>
         </nav>
 
@@ -40,6 +44,9 @@ function App() {
           </Route>
           <Route path="/timer">
             <Timer />
+          </Route>
+          <Route path="/crud">
+            <Crud />
           </Route>
         </Switch>
       </div>
